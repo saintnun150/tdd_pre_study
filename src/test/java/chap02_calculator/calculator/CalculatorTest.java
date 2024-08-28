@@ -1,7 +1,7 @@
-package chap02_240828;
+package chap02_calculator.calculator;
 
 import org.junit.jupiter.api.Test;
-import org.lowell.chap02_240828.Calculator;
+import org.lowell.chap02.calculator.Calculator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -1,4 +1,4 @@
-package org.lowell.chap02_240828;
+package org.lowell.chap02.calculator;
 
 public class Calculator {
     public static int plus(int a1, int a2) {
