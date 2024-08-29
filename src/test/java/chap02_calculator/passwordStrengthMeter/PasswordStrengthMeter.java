@@ -9,17 +9,14 @@ public class PasswordStrengthMeter {
         }
 
         int meetCnts = 0;
-        boolean lengthEnough = pwd.length() >= 8;
-        boolean containsNum = isContainsNum(pwd);
-        boolean containsUpperCase = isContainsUpperCase(pwd);
 
-        if (lengthEnough) {
+        if (pwd.length() >= 8) {
             meetCnts++;
         }
-        if (containsNum) {
+        if (isContainsNum(pwd)) {
             meetCnts++;
         }
-        if (containsUpperCase) {
+        if (isContainsUpperCase(pwd)) {
             meetCnts++;
         }
         if (meetCnts == 1) {
