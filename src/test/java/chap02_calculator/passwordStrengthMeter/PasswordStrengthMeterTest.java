@@ -2,6 +2,8 @@ package chap02_calculator.passwordStrengthMeter;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.lowell.chap02.passwordStrengthMeter.PasswordStrength;
+import org.lowell.chap02.passwordStrengthMeter.PasswordStrengthMeter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

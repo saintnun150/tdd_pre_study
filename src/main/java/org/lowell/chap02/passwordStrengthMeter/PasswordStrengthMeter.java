@@ -1,10 +1,9 @@
-package chap02_calculator.passwordStrengthMeter;
+package org.lowell.chap02.passwordStrengthMeter;
 
-import org.junit.platform.commons.util.StringUtils;
 
 public class PasswordStrengthMeter {
     public PasswordStrength meter(String pwd) {
-        if (StringUtils.isBlank(pwd)) {
+        if (pwd == null || pwd.isEmpty()) {
             return PasswordStrength.INVALID;
         }
 
