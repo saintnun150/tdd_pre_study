@@ -19,7 +19,7 @@ public class PasswordStrengthMeter {
         if (isContainsUpperCase(pwd)) {
             meetCnts++;
         }
-        if (meetCnts == 1) {
+        if (meetCnts <= 1) {
             return PasswordStrength.WEAK;
         }
         if (meetCnts == 2) {
