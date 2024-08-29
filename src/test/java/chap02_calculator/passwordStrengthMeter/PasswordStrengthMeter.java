@@ -7,26 +7,25 @@ public class PasswordStrengthMeter {
         if (StringUtils.isBlank(pwd)) {
             return PasswordStrength.INVALID;
         }
+
+        int meetCnts = 0;
         boolean lengthEnough = pwd.length() >= 8;
         boolean containsNum = isContainsNum(pwd);
         boolean containsUpperCase = isContainsUpperCase(pwd);
 
-        if (lengthEnough && !containsNum && !containsUpperCase) {
+        if (lengthEnough) {
+            meetCnts++;
+        }
+        if (containsNum) {
+            meetCnts++;
+        }
+        if (containsUpperCase) {
+            meetCnts++;
+        }
+        if (meetCnts == 1) {
             return PasswordStrength.WEAK;
         }
-        if (!lengthEnough && containsNum && !containsUpperCase) {
-            return PasswordStrength.WEAK;
-        }
-        if (!lengthEnough && !containsNum && containsUpperCase) {
-            return PasswordStrength.WEAK;
-        }
-        if (!lengthEnough) {
-            return PasswordStrength.NORMAL;
-        }
-        if (!containsNum) {
-            return PasswordStrength.NORMAL;
-        }
-        if (!containsUpperCase) {
+        if (meetCnts == 2) {
             return PasswordStrength.NORMAL;
         }
         return PasswordStrength.STRONG;
