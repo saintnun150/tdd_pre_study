@@ -8,8 +8,18 @@ public class PasswordStrengthMeter {
             return PasswordStrength.INVALID;
         }
 
-        int meetCnts = 0;
+        int meetCnts = getMeetCnts(pwd);
+        if (meetCnts <= 1) {
+            return PasswordStrength.WEAK;
+        }
+        if (meetCnts == 2) {
+            return PasswordStrength.NORMAL;
+        }
+        return PasswordStrength.STRONG;
+    }
 
+    private int getMeetCnts(String pwd) {
+        int meetCnts = 0;
         if (pwd.length() >= 8) {
             meetCnts++;
         }
@@ -19,13 +29,7 @@ public class PasswordStrengthMeter {
         if (isContainsUpperCase(pwd)) {
             meetCnts++;
         }
-        if (meetCnts <= 1) {
-            return PasswordStrength.WEAK;
-        }
-        if (meetCnts == 2) {
-            return PasswordStrength.NORMAL;
-        }
-        return PasswordStrength.STRONG;
+        return meetCnts;
     }
 
     private boolean isContainsNum(String pwd) {
