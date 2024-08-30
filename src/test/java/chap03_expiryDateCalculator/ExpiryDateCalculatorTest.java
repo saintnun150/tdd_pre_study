@@ -21,6 +21,12 @@ public class ExpiryDateCalculatorTest {
         assertEquals(exceptExpiryDate, realExpiryDate);
     }
 
+    private void assertExpiryDate(PayData payData, LocalDate exceptExpiryDate) {
+        ExpiryDateCalculator calculator = new ExpiryDateCalculator();
+        LocalDate realExpiryDate = calculator.calculateExpiryDate(payData);
+        assertEquals(exceptExpiryDate, realExpiryDate);
+    }
+
     @DisplayName("만원 납부 시 한달 뒤 만료일")
     @Test
     void pay_10000_won() {
@@ -50,11 +56,16 @@ public class ExpiryDateCalculatorTest {
     void pay_10000_won_remove_duplicate() {
 
 
-        assertExpiryDate((LocalDate.of(2019, 3, 1)),
-                         10_100,
+        assertExpiryDate(PayData.builder()
+                                .billingDate((LocalDate.of(2019, 3, 1)))
+                                .payAmount(10_000)
+                                .build(),
                          LocalDate.of(2019, 4, 1));
-        assertExpiryDate((LocalDate.of(2019, 5, 5)),
-                         10_100,
+
+        assertExpiryDate(PayData.builder()
+                                .billingDate((LocalDate.of(2019, 5, 5)))
+                                .payAmount(10_000)
+                                .build(),
                          LocalDate.of(2019, 6, 5));
     }
 
@@ -67,16 +78,22 @@ public class ExpiryDateCalculatorTest {
         // 2020-01-31, 10,000원 -> 2019-02-29
         // 넘어가는 달의 일자가 맞지 않음
 
-        assertExpiryDate(LocalDate.of(2019,1,31),
-                         10_000,
-                         LocalDate.of(2019,2,28));
+        assertExpiryDate(PayData.builder()
+                                .billingDate((LocalDate.of(2019, 1, 31)))
+                                .payAmount(10_000)
+                                .build(),
+                         LocalDate.of(2019, 2, 28));
 
-        assertExpiryDate(LocalDate.of(2019,5,31),
-                         10_000,
+        assertExpiryDate(PayData.builder()
+                                .billingDate((LocalDate.of(2019,5,31)))
+                                .payAmount(10_000)
+                                .build(),
                          LocalDate.of(2019,6,30));
 
-        assertExpiryDate(LocalDate.of(2020,1,31),
-                         10_000,
+        assertExpiryDate(PayData.builder()
+                                .billingDate((LocalDate.of(2020,1,31)))
+                                .payAmount(10_000)
+                                .build(),
                          LocalDate.of(2020,2,29));
 
         // 날짜 라이브러리에서 자동으로 각 월에 따라 날짜 계산을 알아서 해줌
