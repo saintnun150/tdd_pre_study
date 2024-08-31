@@ -27,6 +27,7 @@ public class ExpiryDateCalculatorTest {
         assertEquals(exceptExpiryDate, realExpiryDate);
     }
 
+    // 새로운 테스트
     @DisplayName("만원 납부 시 한달 뒤 만료일")
     @Test
     void pay_10000_won() {
@@ -101,9 +102,10 @@ public class ExpiryDateCalculatorTest {
     }
 
     // 예외 상황 처리 2
-    @DisplayName("지불하는 서비스 이용료가 달라질 때")
+    @DisplayName("첫납부일과 만료일의일자가 같지 않은 경우 만원 납부")
     @Test
-    void expiryDate_if_change_billing_amount() {
+    void do_not_matched_first_billing_date_after_expiry_date() {
+
         // 쉬운 조건상황
         // n만원 -> n달뒤 만료일 설정
 
@@ -116,6 +118,75 @@ public class ExpiryDateCalculatorTest {
         // 첫 번째 테스트 조건이 첫 납부일을 기준으로 만료일에 대한 코드를 작성했기 때문에
         // 비교적 현재 조건을 만족시키고 새로운 예외상황까지 처리할 수 있는 후자를 선택하자.
 
+        assertExpiryDate(PayData.builder()
+                                .firstBillingDate(LocalDate.of(2019, 1, 31))
+                                .billingDate((LocalDate.of(2019, 2, 28)))
+                                .payAmount(10_000)
+                                .build(),
+                         LocalDate.of(2019, 3, 31));
+
+
+        PayData payData2 = PayData.builder()
+                                  .firstBillingDate(LocalDate.of(2019, 1, 30))
+                                  .billingDate(LocalDate.of(2019, 2, 28))
+                                  .payAmount(10_000)
+                                  .build();
+        assertExpiryDate(payData2, LocalDate.of(2019, 3, 30));
+
+        PayData payData3 = PayData.builder()
+                                  .firstBillingDate(LocalDate.of(2019, 5, 31))
+                                  .billingDate(LocalDate.of(2019, 6, 30))
+                                  .payAmount(10_000)
+                                  .build();
+        assertExpiryDate(payData3, LocalDate.of(2019, 7, 31));
+    }
+
+    // 새로운 테스트 1
+    @DisplayName("지불하는 서비스 이용료가 달라질 때 만료일이 달라짐")
+    @Test
+    void expiryDate_if_change_billing_amount() {
+        // n만원 -> n달뒤 만료일 설정
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2019, 3, 1))
+                       .payAmount(20_000)
+                       .build(),
+                LocalDate.of(2019, 5, 1));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2019, 3, 1))
+                       .payAmount(30_000)
+                       .build(),
+                LocalDate.of(2019, 6, 1));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2021, 7, 15))
+                       .payAmount(50_000)
+                       .build(),
+                LocalDate.of(2021, 12, 15));
+    }
+
+    // 예외 상황 처리 1
+    @DisplayName("지불하는 서비스 이용료가 달라질 때 만료일이 달라짐+첫 납부일과 만료일자가 다를 때")
+    @Test
+    void expiryDate_if_change_billing_amount_plus_not_match_billing_date() {
+        assertExpiryDate(
+                PayData.builder()
+                       .firstBillingDate(LocalDate.of(2019, 1, 31))
+                       .billingDate(LocalDate.of(2019, 2, 28))
+                       .payAmount(20_000)
+                       .build(),
+                LocalDate.of(2019, 4, 30));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .firstBillingDate(LocalDate.of(2019, 3, 31))
+                       .billingDate(LocalDate.of(2019, 4, 30))
+                       .payAmount(30_000)
+                       .build(),
+                LocalDate.of(2019, 7, 31));
     }
 
 
