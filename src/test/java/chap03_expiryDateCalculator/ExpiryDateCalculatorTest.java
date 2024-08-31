@@ -27,6 +27,7 @@ public class ExpiryDateCalculatorTest {
         assertEquals(exceptExpiryDate, realExpiryDate);
     }
 
+    // 새로운 테스트
     @DisplayName("만원 납부 시 한달 뒤 만료일")
     @Test
     void pay_10000_won() {
@@ -138,6 +139,54 @@ public class ExpiryDateCalculatorTest {
                                   .payAmount(10_000)
                                   .build();
         assertExpiryDate(payData3, LocalDate.of(2019, 7, 31));
+    }
+
+    // 새로운 테스트 1
+    @DisplayName("지불하는 서비스 이용료가 달라질 때 만료일이 달라짐")
+    @Test
+    void expiryDate_if_change_billing_amount() {
+        // n만원 -> n달뒤 만료일 설정
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2019, 3, 1))
+                       .payAmount(20_000)
+                       .build(),
+                LocalDate.of(2019, 5, 1));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2019, 3, 1))
+                       .payAmount(30_000)
+                       .build(),
+                LocalDate.of(2019, 6, 1));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2021, 7, 15))
+                       .payAmount(50_000)
+                       .build(),
+                LocalDate.of(2021, 12, 15));
+    }
+
+    // 예외 상황 처리 1
+    @DisplayName("지불하는 서비스 이용료가 달라질 때 만료일이 달라짐+첫 납부일과 만료일자가 다를 때")
+    @Test
+    void expiryDate_if_change_billing_amount_plus_not_match_billing_date() {
+        assertExpiryDate(
+                PayData.builder()
+                       .firstBillingDate(LocalDate.of(2019, 1, 31))
+                       .billingDate(LocalDate.of(2019, 2, 28))
+                       .payAmount(20_000)
+                       .build(),
+                LocalDate.of(2019, 4, 30));
+
+        assertExpiryDate(
+                PayData.builder()
+                       .firstBillingDate(LocalDate.of(2019, 3, 31))
+                       .billingDate(LocalDate.of(2019, 4, 30))
+                       .payAmount(30_000)
+                       .build(),
+                LocalDate.of(2019, 7, 31));
     }
 
 
