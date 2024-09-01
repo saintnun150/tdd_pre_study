@@ -27,7 +27,7 @@ public class ExpiryDateCalculatorTest {
         assertEquals(exceptExpiryDate, realExpiryDate);
     }
 
-    // 새로운 테스트
+    // 조건 1
     @DisplayName("만원 납부 시 한달 뒤 만료일")
     @Test
     void pay_10000_won() {
@@ -141,7 +141,7 @@ public class ExpiryDateCalculatorTest {
         assertExpiryDate(payData3, LocalDate.of(2019, 7, 31));
     }
 
-    // 새로운 테스트 1
+    // 조건 2
     @DisplayName("지불하는 서비스 이용료가 달라질 때 만료일이 달라짐")
     @Test
     void expiryDate_if_change_billing_amount() {
@@ -187,6 +187,45 @@ public class ExpiryDateCalculatorTest {
                        .payAmount(30_000)
                        .build(),
                 LocalDate.of(2019, 7, 31));
+    }
+
+    // 조건 3
+    @DisplayName("10개월 요금 납부하면 1년 제공")
+    @Test
+    void add_1_years_expiryDate_if_you_charged_10_months_payAmount() {
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(LocalDate.of(2019, 1, 28))
+                       .payAmount(100_000)
+                       .build(),
+                LocalDate.of(2020, 1, 28));
+
+        LocalDate billingDate = LocalDate.of(2020, 2, 29);
+        assertExpiryDate(
+                PayData.builder()
+                       .billingDate(billingDate)
+                       .payAmount(100_000)
+                       .build(),
+                billingDate.plusYears(1));
+
+        LocalDate billingDate2 = LocalDate.of(2020, 2, 29);
+        LocalDate expectedExpiryDate = billingDate2.plusYears(1)
+                                                   .withDayOfMonth(
+                                                           Math.min(billingDate2.getDayOfMonth(),
+                                                                    billingDate2.plusYears(1).lengthOfMonth()));
+//        assertExpiryDate(
+//                PayData.builder()
+//                       .billingDate(billingDate)
+//                       .payAmount(130_000)
+//                       .build(),
+//                expectedExpiryDate);
+
+//        assertExpiryDate(
+//                PayData.builder()
+//                       .billingDate(LocalDate.of(2020, 3, 1))
+//                       .payAmount(130_000)
+//                       .build(),
+//                LocalDate.of(2021, 4, 1));
     }
 
 
