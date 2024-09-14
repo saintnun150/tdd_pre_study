@@ -13,7 +13,7 @@ public class AutoDebitRegister {
     
     public RegisterResult register(AutoDebitReq req) {
        CardValidity validity = validator.validate(req.getCardNumber());
-       if (validity !=CardValidity.VALID) {
+       if (validity != CardValidity.VALID) {
            return RegisterResult.error(validity);
        }
 

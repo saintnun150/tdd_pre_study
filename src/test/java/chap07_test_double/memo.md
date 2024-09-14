@@ -15,5 +15,41 @@ ex) 주요 예
 
 ## 대역을 이용한 테스트
 대역을 이용해 AutoDebitRegister를 테스트하는 코드를 다시 작성하자   
-CardNumberValidator -> StubCardNumberValidator
+CardNumberValidator -> StubCardNumberValidator   
+AutoDebitInfoRepository  -> StubAutoDebitInfoRepository   
+여기서 StubCardNumberValidator, StubAutoDebitInfoRepository의 역할은 실제 카드번호 검증 기능을 구현X. 대신 단순한 구현으로 실제 구현을 대체    
+
+아래는 예시
+```java
+public class StubCardNumberValidator extends CardNumberValidator {
+    private String invalidNo;
+    
+    public void setInvalidNo(String invalidNo) {
+        this.invalidNo = invalidNo;
+    }
+
+    @Override
+    public CardValidity validate(String cardNumber) {
+        if (invalidNo != null && invalidNo.equals(cardNumber)) {
+            return CardValidity.INVALID;
+        }
+        return CardValidity.VALID;
+    }
+}
+
+public class StubAutoDebitInfoRepository implements AutoDebitInfoRepository {
+    @Override
+    public AutoDebitInfo findOne(String userId) {
+        return null;
+    }
+
+    @Override
+    public void save(AutoDebitInfo newInfo) {
+
+    }
+}
+
+```
+이 대역들을 통해 AutoDebitRegister를 다시 테스트해보자.
+
 
