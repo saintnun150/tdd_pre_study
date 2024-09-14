@@ -68,4 +68,10 @@ public class FileReadTest {
             throw new RuntimeException(e);
         }
     }
+
+    private class MathUtils {
+        public static long sum(File file) {
+            return file.length();
+        }
+    }
 }
