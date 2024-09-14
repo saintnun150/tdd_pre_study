@@ -93,5 +93,115 @@ public class MemoryAutoDebitInfoRepository implements AutoDebitInfoRepository {
 * UserRepository: 회원 정보에 대한 CRUD 기능 제공
 * EmailNotifier: 이메일 발송 기능 제공
 
+## 스텁(Stub) - 약한 암호 확인 기능
+```java
+public interface WeakPasswordChecker {
+    boolean checkPasswordWeak(String pw);
+}
+
+public class StubWeakPasswordChecker implements WeakPasswordChecker {
+    private boolean weak;
+
+    public void setWeak(boolean weak) {
+        this.weak = weak;
+    }
+
+    @Override
+    public boolean checkPasswordWeak(String pw) {
+        return weak;
+    }
+}
+
+public void register(String id, String pw, String email) {
+    if (passwordChecker.checkPasswordWeak(pw)) {
+        throw new WeakPasswordException();
+    }
+}
+```
+
+## 가짜(Fake) - 리포지토리 구현
+```java
+public interface UserRepository {
+    void save(User user);
+    User findById(String id);
+}
+
+public class MemoryUserRepository implements UserRepository {
+    private Map<String, User> users = new HashMap<>();
+
+    @Override
+    public void save(User user) {
+        users.put(user.getId(), user);
+    }
+
+    @Override
+    public User findById(String id) {
+        return users.get(id);
+    }
+}
+
+public void register(String id, String pw, String email) {
+    if (passwordChecker.checkPasswordWeak(pw)) {
+        throw new WeakPasswordException();
+    }
+    User user = userRepository.findById(id);
+    if (user != null) {
+        throw new DuplicateIdException();
+    }
+    userRepository.save(new User(id, pw, email));
+}
+```
+
+## 스파이(Spy) - 이메일 발송 여부 확인
+회원 가입에 성공 -> 회원 가입 안내 메일 발송   
+UserRegister가 EmailNotifier의 메일 발송 기능을 실행 -> 이메일 주소로 해당 이메일을 사용했는지 확인   
+이럴 때 스파이 대역을 사용한다.   
+
+EmailNotifier 기능 구현   
+* 이메일 발송 여부
+* 발송 요청 이메일 주소 제공
+
+```java
+public interface EmailNotifier {
+    void sendRegisterEmail(String email);
+}
+
+public class SpyEmailNotifier implements EmailNotifier {
+    private boolean notified;
+    private String email;
+
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public void sendRegisterEmail(String email) {
+        this.notified = true;
+        this.email = email;
+    }
+}
+
+public void register(String id, String pw, String email) {
+    // 중략
+    userRepository.save(new User(id, pw, email));
+    emailNotifier.sendRegisterEmail(email);
+}
+```
+
+위 기능 구현을 UserRegister에서 호출하자
+
+
+
+
+
+
+
+
+
+
 
 
