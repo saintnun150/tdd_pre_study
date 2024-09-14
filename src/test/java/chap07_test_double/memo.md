@@ -48,8 +48,34 @@ public class StubAutoDebitInfoRepository implements AutoDebitInfoRepository {
 
     }
 }
-
 ```
-이 대역들을 통해 AutoDebitRegister를 다시 테스트해보자.
+
+이 대역들을 통해 AutoDebitRegister를 다시 테스트해보자.   
+
+또한 실제 DB 대신 Memory 기반으로 대역을 만들어 사용할 수 있다.
+```java
+public class MemoryAutoDebitInfoRepository implements AutoDebitInfoRepository {
+    private Map<String, AutoDebitInfo> infos = new HashMap<>();
+
+    @Override
+    public AutoDebitInfo findOne(String userId) {
+        return infos.get(userId);
+    }
+
+    @Override
+    public void save(AutoDebitInfo newInfo) {
+        infos.put(newInfo.getUserId(), newInfo);
+
+    }
+}
+```
+
+## 대역을 사용한 외부 상황 흉내와 결과 검증
+
+* StubCardNumberValidator -> 외부 API 연동 없이 동작확인. 카드번호 유효성을 흉내
+* MemoryAutoDebitInfoRepository -> 실제 DB 연동 없이 CU 확인. DB 등록, 수정을 흉내
+
+이처럼 대역을 사용하면 테스트 대상에 대해 쉽고 빠르게 검증 가능
+
 
 

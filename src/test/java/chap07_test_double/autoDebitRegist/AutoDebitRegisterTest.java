@@ -4,18 +4,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AutoDebitRegisterTest {
     private AutoDebitRegister register;
     private StubCardNumberValidator stubValidator;
-    private StubAutoDebitInfoRepository stubRepository;
+//    private StubAutoDebitInfoRepository stubRepository;
+    private MemoryAutoDebitInfoRepository memoryRepository;
 
     @BeforeEach
     void setUp() {
         stubValidator = new StubCardNumberValidator();
-        stubRepository = new StubAutoDebitInfoRepository();
-        register = new AutoDebitRegister(stubValidator, stubRepository);
+        memoryRepository = new MemoryAutoDebitInfoRepository();
+        register = new AutoDebitRegister(stubValidator, memoryRepository);
     }
 
     @DisplayName("유효한 카드 검사")
@@ -51,5 +54,31 @@ public class AutoDebitRegisterTest {
         AutoDebitReq req = new AutoDebitReq("user1", "444444");
         RegisterResult result = register.register(req);
         assertEquals(CardValidity.THEFT, result.getValidity());
+    }
+
+    @DisplayName("stub - 이미 등록된 카드정보는 갱신")
+    @Test
+    void test5() {
+        memoryRepository.save(new AutoDebitInfo("user1",
+                                                "123123",
+                                                LocalDateTime.now()));
+
+        AutoDebitReq req = new AutoDebitReq("user1", "222222");
+        RegisterResult result = this.register.register(req);
+
+        AutoDebitInfo saved = memoryRepository.findOne("user1");
+        assertEquals("222222", saved.getCardNumber());
+
+    }
+
+    @DisplayName("stub - 신규 등록")
+    @Test
+    void test6() {
+        AutoDebitReq req = new AutoDebitReq("user1", "555");
+        RegisterResult result = this.register.register(req);
+
+        AutoDebitInfo saved = memoryRepository.findOne("user1");
+        assertEquals("555", saved.getCardNumber());
+
     }
 }
