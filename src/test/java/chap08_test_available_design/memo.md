@@ -1,21 +1,18 @@
-# 테스트 가능한 설계
+# 테스트 가능한 설계와 테스트가 어려운 코드 개선 방안
 
 ## 테스트가 어려운 코드
 
-### 하드 코딩된 상수
-테스트 코드 안에 경로, 주소 등 변경할 수 있는 인자들이 하드코딩 되어있다면 테스트를 어렵게 만든다.
+### 1. 하드코딩된 상수
+코드 내에 경로, 주소, 설정값 등이 하드코딩되어 있으면, 테스트 시에 이를 변경하기 어려워 테스트를 복잡하게 만듭니다. 변경 가능한 인자들이 테스트에 종속되면 유지보수가 어려워집니다.
 
-### 의존 객체를 직접 생성
-Dao 같은 의존 대상을 테스트하는 대상에 new 인스턴스로 직접 생성한다면 테스트를 할 때
-해당 의존 대상의 기능을 온전히 구현해야한다. 이는 테스트에 필요한 시간을 증가시킨다.
+### 2. 의존 객체의 직접 생성
+테스트 대상 코드에서 의존성을 갖는 객체(예: Dao 객체)를 직접 `new` 키워드로 생성하면, 해당 객체의 기능을 전부 구현해야 하므로 테스트 준비에 시간이 많이 소요됩니다.
 
-### 정적 메서드 사용
-xxUtil class 같은 정적 메서드 클래스를 의존할 때 해당 정적 메서드 정보가 변경되거나 기능상 문제가 생기면
-테스트를 어렵게 만든다.
+### 3. 정적 메서드 사용
+정적 메서드를 사용하는 클래스(예: `xxUtil` 클래스)를 의존할 때, 해당 메서드의 내부 구현이 변경되면 테스트 결과에 영향을 미칩니다. 이러한 의존성을 처리하기 어렵기 때문에 테스트 작성이 복잡해집니다.
 
-### 실행 시점에 따라 달라지는 결과
-테스트 하려는 기능이 특정 시점을 체크한다고 했을 때 LocalData.now() 같이 호출 시점을 반환하는 값으로 작성하게되면
-실행 시점에 따라 테스트 결과가 달라지게 되어 테스트에 오동작이 생길 수 있다.
+### 4. 실행 시점에 따라 달라지는 결과
+`LocalDate.now()`처럼 실행 시점에 따라 다른 결과를 반환하는 메서드를 사용할 경우, 테스트를 반복 실행할 때마다 결과가 달라질 수 있습니다. 이로 인해 테스트의 신뢰성이 떨어지며, 예기치 못한 오류가 발생할 수 있습니다.
 
 ```java
 import java.time.LocalDate;
@@ -29,7 +26,8 @@ public void checkExpiredDate() {
 }
 ```
 
-### 역할이 섞여 있는 코드
+### 5. 역할이 섞인 코드
+역할이 명확히 분리되지 않은 코드는 테스트하기 어려울 수 있습니다. 예를 들어, 만료일을 확인하는 코드에 데이터베이스 접근 코드가 포함되어 있다면, 단순한 날짜 비교 로직을 테스트하려고 해도 DB 의존성을 처리해야 합니다.
 
 ```java
 import java.time.LocalDate;
@@ -43,33 +41,33 @@ public void checkExpiredDate() {
 }
 ```
 
-위 메서드는 Item의 만료일만 체크하기 힘들다. 그 이유는 DB에서 Item 조회를 위한 itemDao ``대역``이 필요하기 때문이다.
-단순히 날짜를 비교하는 것은 DB에서 Item을 조회하는 것과 상관이 없다.
+### 그 외 테스트가 어려운 코드 사례
+- 메서드 중간에 소켓 통신 코드가 포함된 경우
+- 콘솔 입출력 코드가 포함된 경우
+- 의존 객체가 `final`로 선언된 경우
+- 테스트 대상의 소스 코드가 외부 라이브러리에 속하는 경우
 
-### 그 외 테스트가 어려운 코드
-* 메서드 중간에 소켓 통신 코드
-* 콘솔 입출력 코드
-* 의존 대상 클래스나 메서드가 final일 때 대역으로 대체하기 어려움
-* 테스트 대상의 소스를 소유하고 있을 때 수정이 어려움 (ex. 라이브러리 사용)
+---
 
-## 테스트 가능한 설계
+## 테스트 가능한 설계 방안
 
-### 하드 코딩된 상수
-생성자(ex. setter), 메서드 파라미터로 변경
+### 1. 하드코딩된 상수 개선
+생성자나 메서드 파라미터로 변경 가능한 값으로 설정하여 테스트 시 쉽게 수정할 수 있도록 만듭니다.
 
-### 의존 객체를 직접 생성
-직접 생성이 아닌 주입 받는 형태로 변경
+### 2. 의존 객체 주입 방식 사용
+의존 객체를 직접 생성하는 대신, 주입 방식(생성자 주입, setter 주입)을 사용하여 의존성을 분리합니다. 이렇게 하면, 테스트 시 Mock 객체 등으로 쉽게 교체할 수 있습니다.
 
 ```java
 public class ItemChecker {
     private ItemDao itemDao;
     
-    public Item(ItemDao itemDao) {
+    public ItemChecker(ItemDao itemDao) {
         this.itemDao = itemDao;
     }
 }
+```
 
-// 생성자가 없을 때
+```java
 public class ItemChecker {
     private ItemDao itemDao = new ItemDao();
 
@@ -78,6 +76,32 @@ public class ItemChecker {
     }
 }
 ```
+
+### 3. 역할 분리
+테스트 대상이 여러 역할을 수행하지 않도록 분리하여, 테스트 시 특정 기능에 집중할 수 있도록 개선합니다.
+
+```java
+import java.time.LocalDate;
+
+public boolean checkExpiredDate() {
+    Item item = itemDao.findById(id);
+    LocalDate now = LocalDate.now();
+    boolean isExpired = false;
+    if (item.isFinished(now)) {
+        isExpired = true;
+    }
+    item.setExpired(isExpired);
+}
+
+public Item checkItemState(Item item, LocalDate now, boolean expired) {
+    if (item.isFinished(now)) {
+        expired = true;
+    }
+    item.setExpired(expired);
+    return item;
+}
+```
+
 위와 같이 의존 대상을 주입 받을 수 있다면 그 대상을 대역으로 쉽게 변경가능하다.
 
 ```java
@@ -96,33 +120,9 @@ public class ItemExpiredTest {
 }
 ```
 
-### 역할이 섞여 있는 코드
-테스트 대상의 특정 기능 확인에 맞지 않는 코드는 분리하여 테스트를 용이하게 하자.
-
-```java
-import java.time.LocalDate;
-
-public boolean checkExpiredDate() {
-    Item item = itemDao.findById(id);
-    LocalDate now = LocalDate.now();
-    boolean isExpired = false;
-    if (item.isFinished(now)) {
-        isExpired = true;
-    }
-    item.setExpired(isExpired);
-}
-
-public Item checkItemState(Item item, LocalDate now, boolean expired) {
-    if (item.isFinished(now)) {
-        isExpired = true;
-    }
-    item.setExpired(isExpired);
-    return item;
-}
-```
-이제 대역은 Item이 만료되었으면 상태만 변경하는 기능만 테스트가 가능하다.
-
-또한 시간이나 임의 값 생성 기능도 분리할 수 있다.
+### 4. 시간 의존성 제거
+시간 또는 임의 값을 반환하는 기능을 분리하여 테스트 시점에 따라 달라지는 동작을 제어할 수 있도록 합니다.
+Times 대역을 이용해 DailyBatchLoader가 사용할 일자를 지정 가능하다.
 
 분리 전
 ```java
@@ -148,11 +148,6 @@ public class DailyBatchLoader {
 
 분리 후
 ```java
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 public class DailyBatchLoader {
     private String basePath = ".";
     private Times times = new Times();
@@ -166,13 +161,12 @@ public class DailyBatchLoader {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         Path batchpath = Paths.get(basePath, date.format(formatter), "batch.txt");
 
-        // ex. batchPath에서 NameCount 반환
         int result = batchpath.getNameCount();
         return result;
     }
 }
 ```
-위 코드는 Times 대역을 이용해 DailyBatchLoader가 사용할 일자를 지정 가능하다.
+
 임의 값도 비슷하다. 임의 값을 제공하는 라이브러리를 직접 사용하지 말고 별도로 분리한 타입을 사용해 대역으로
 처리해서 테스트를 가능하게 만들 수 있다.
 
@@ -203,9 +197,8 @@ public class DailyLoaderTest {
 }
 ```
 
-외부 라이브러리는 직접 사용하지 말고 감싸서 사용하자.
-
-아래 예시는 로그인 성공 결과를 확인하는 코드다.
+### 5. 외부 라이브러리 감싸기
+외부 라이브러리나 정적 메서드를 직접 사용하지 않고 이를 감싸는 클래스를 만들어, 테스트 시 Mock으로 대체할 수 있도록 설계합니다.
 
 ```java
 public LoginResult login(String id, String pw) {
@@ -231,7 +224,7 @@ public LoginResult login(String id, String pw) {
 ```
 위 코드에서 AuthUtil 클래스 안에 외부 라이브러리가 포함되어 있다고 가정하자.
 AuthUtil에서 제공하는 authorize, authenticate 메서드는 정적 메서드로 그 결과에 대해 컨트롤 하기가 힘들고
-각각을 대역으로 
+각각을 대역으로
 이 경우에 AuthUtil을 감싸는 AuthService라는 타입을 만든다면 테스트에서 이를 대역으로 대체할 수 있다.
 
 ```java
@@ -272,14 +265,10 @@ public class LoginService {
     }
 }
 ```
-이렇게 AuthService를 대역으로 대체하면 authenticate 결과에 따라 LoginService가 올바르게 동작하는지
-검증하는 코드를 만들 수 있다.
-final 클래스, 메서드에서도 이와 동일한 기법을 적용할 수 있다.
 
+`AuthService`를 주입받는 `LoginService`를 통해 의존성을 대역(Mock)으로 교체하여 테스트를 용이하게 만듭니다.
 
+---
 
-
-
-
-
-
+### 결론
+위와 같은 설계를 통해 테스트가 어려운 코드를 개선할 수 있으며, 의존성 주입 및 역할 분리, 외부 라이브러리 감싸기 등의 기법을 사용하면 코드의 테스트 가능성을 크게 높일 수 있습니다.
